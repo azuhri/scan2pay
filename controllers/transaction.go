@@ -172,7 +172,7 @@ func GetListTransaction(c *gin.Context) {
 
 	var transIn []models.Transaction
 	var transOut []models.Transaction
-	_ := initializers.DB.Where("receiver_id = ?", userId).Find(&transIn)
+	_ = initializers.DB.Where("receiver_id = ?", userId).Find(&transIn)
 
 	_ = initializers.DB.Where("sender_id = ?", userId).Find(&transOut)
 

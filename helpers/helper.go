@@ -17,9 +17,10 @@ func RandomString(n int) string {
 }
 
 type Config struct {
-	API      string
-	Username string
-	Password string
+	API            string
+	Username       string
+	Password       string
+	NOREK_BANK_ITS string
 }
 
 func GetEnv() (Config, error) {
@@ -30,8 +31,9 @@ func GetEnv() (Config, error) {
 	}
 
 	return Config{
-		API:      config.API,
-		Username: config.Username,
-		Password: config.Password,
+		API:            config.API,
+		Username:       config.Username,
+		Password:       config.Password,
+		NOREK_BANK_ITS: config.NOREK_BANK_ITS,
 	}, nil
 }

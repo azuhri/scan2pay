@@ -10,6 +10,7 @@ func UserRoutes(r *gin.RouterGroup) {
 	r.GET("/", controllers.GetUser)
 	r.PUT("/", controllers.UpdateUser)
 	r.POST("/bank-account/activation", controllers.ActivationBankAccount)
+	r.POST("payback", controllers.Payback)
 
 	routePin := r.Group("/pin")
 	{

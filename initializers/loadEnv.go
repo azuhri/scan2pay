@@ -14,6 +14,7 @@ type Config struct {
 	API            string `mapstructure:"ENDPOINT_BNC"`
 	Username       string `mapstructure:"USERNAME_BNC"`
 	Password       string `mapstructure:"PASSWORD_BNC"`
+	NOREK_BANK_ITS string `mapstructure:"NOREK_BANK_ITS"`
 
 	ClientOrigin string `mapstructure:"CLIENT_ORIGIN"`
 }

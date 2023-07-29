@@ -6,6 +6,7 @@ func SyncDb() {
 	DB.AutoMigrate(
 		&models.User{},
 		&models.Transaction{},
+		&models.Bill{},
 		// &models.Order{},
 	)
 

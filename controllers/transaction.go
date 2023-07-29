@@ -45,9 +45,16 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
+	var userReceiver models.User
+
+	fmt.Println("UUID Receiver: " + uuidReceiver.String())
+	err = initializers.DB.Where("id = ?", uuidReceiver.String()).First(&userReceiver).Error
+
 	createTransaction := models.Transaction{
 		ReceiverID:      uuidReceiver,
 		SenderID:        uuidSender,
+		SenderName:      userSender.Name,
+		ReceiverName:    userReceiver.Name,
 		Amount:          payload.Amount,
 		TransactionCode: strings.ToUpper("TRX-" + helpers.RandomString(5) + "-" + helpers.RandomString(5) + "-" + helpers.RandomString(5)),
 	}
@@ -76,10 +83,6 @@ func CreateTransaction(c *gin.Context) {
 		Amount                int    `json:"amount"`
 	}
 
-	var userReceiver models.User
-
-	fmt.Println("UUID Receiver: " + uuidReceiver.String())
-	err = initializers.DB.Where("id = ?", uuidReceiver.String()).First(&userReceiver).Error
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -187,4 +190,106 @@ func GetListTransaction(c *gin.Context) {
 		"data":    dataTrans,
 	})
 	return
+}
+
+func Payback(c *gin.Context) {
+
+	type ResponseData struct {
+		TraceID string `json:"traceId"`
+		Data    struct {
+			UID         int64  `json:"uid"`
+			Balance     int64  `json:"balance"`
+			AccountName string `json:"accountName"`
+			CreateTime  int64  `json:"createTime"`
+			AccountNo   string `json:"accountNo"`
+			UpdateTime  int64  `json:"updateTime"`
+			ID          int64  `json:"id"`
+			Status      string `json:"status"`
+		} `json:"data"`
+		Success bool `json:"success"`
+	}
+
+	env, err := helpers.GetEnv()
+	type PayloadAPI struct {
+		SenderAccountNumber   string `json:"senderAccountNo"`
+		ReceiverAccountNumber string `json:"receiverAccountNo"`
+		Amount                int    `json:"amount"`
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "failed to create transaction",
+			"errors":  "code uuid not valid",
+		})
+		return
+	}
+
+	var user models.User
+
+	accountNumber := c.GetString("accountNo")
+	userId := c.GetString("userId")
+	initializers.DB.Where("id = ?", userId).First(&user)
+
+	requestPayloadAPI := PayloadAPI{
+		SenderAccountNumber:   accountNumber,
+		ReceiverAccountNumber: env.NOREK_BANK_ITS,
+		Amount:                int(user.TotalCredit),
+	}
+
+	fmt.Println("request: " + requestPayloadAPI.ReceiverAccountNumber)
+
+	bodyReq, err := json.Marshal(requestPayloadAPI)
+	if err != nil {
+		fmt.Println("Error saat mengubah data menjadi JSON:", err)
+		return
+	}
+
+	endpointAPI := fmt.Sprintf("%s/bankAccount/transaction/create", env.API)
+	requestAPI, err := http.NewRequest("POST", endpointAPI, bytes.NewBuffer(bodyReq))
+	if err != nil {
+		fmt.Println("Error saat membuat request:", err)
+		return
+	}
+	tokenAPI := c.GetString("tokenAPI")
+	// Set header untuk mengatur tipe konten menjadi "application/json"
+	requestAPI.Header.Set("Content-Type", "application/json")
+	requestAPI.Header.Set("Authorization", "Bearer "+tokenAPI)
+
+	// Membuat client HTTP untuk mengirim request
+	client := http.DefaultClient
+
+	// Mengirimkan request POST
+	resp, err := client.Do(requestAPI)
+	if err != nil {
+		fmt.Println("Error saat mengirimkan request:", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	// Membaca respons dari API pihak ketiga (opsional)
+	// Jika Anda tidak memerlukan respons, Anda dapat menghapus bagian ini
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error saat membaca respons:", err)
+		return
+	}
+	fmt.Println("========= HIT API CREATE TRANSACTION =========")
+	fmt.Println("Response:\n", string(responseData))
+	fmt.Println("===========================")
+
+	// Mendeklarasikan variabel untuk menampung data respons JSON
+	var res ResponseData
+
+	// Menguraikan data JSON ke dalam struktur data ResponseData
+	err = json.Unmarshal(responseData, &res)
+
+	user.TotalCredit = 0
+	initializers.DB.Save(&user)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Success payback bill",
+	})
 }

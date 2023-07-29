@@ -314,8 +314,8 @@ func ActivationBankAccount(c *gin.Context) {
 	modelUser.AccountName = strings.ToUpper(modelUser.Name)
 	modelUser.AccountNumber = res.Data.AccountNo
 	initializers.DB.Save(&modelUser)
-	c.JSON(http.StatusUnauthorized, gin.H{
-		"status":  false,
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
 		"message": "Success activation bank account",
 	})
 }

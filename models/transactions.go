@@ -13,6 +13,8 @@ type Transaction struct {
 	TransactionCode string    `gorm:"uniqueIndex; not null"`
 	SenderID        uuid.UUID `gorm:"not null"`
 	ReceiverID      uuid.UUID `gorm:"not null"`
+	ReceiverName    string    `gorm:"null"`
+	SenderName      string    `gorm:"null"`
 	Amount          int       `gorm:"not null"`
 	CreatedAt       time.Time
 	UpdatedAt       time.Time

@@ -1,0 +1,25 @@
+# air.toml
+
+# List directories you want to be watched for changes.
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Just plain old go build or you can add any custom flags here
+  cmd = "go build -o ./tmp/main"
+
+  # Binary file yields from `cmd`.
+  binary = "tmp/main"
+
+  # Customize binary name suffix, default is none.
+  #suffix = "_custom"
+
+  # Ignored watching directories, can be regular expressions.
+  ignore_dirs = ["tmp", "vendor"]
+
+  # Ignored watching files, can be regular expressions.
+  ignore_files = ["\\.log$"]
+
+[log]
+  # It could be "air", "debug", "info", "warn", "error".
+  level = "air"
